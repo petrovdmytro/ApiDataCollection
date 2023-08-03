@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Drawing;
+using System.Net;
 using System.Text;
 using System.Xml.Linq;
 
@@ -25,46 +26,50 @@ namespace ApiDataCollection.Controllers
         [HttpGet("params")]
         public async Task<IActionResult> GetParamsAsync([FromQuery] string name = null, [FromQuery] int? limit = null, [FromQuery] string nameSorting = null, [FromQuery] int? first = null)
         {
-            IEnumerable<Country> countries;
-            // Send a GET request to the public API
-            var client = _clientFactory.CreateClient();
-
-            var response = await client.GetAsync($"https://restcountries.com/v3.1/all");
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                // Get the response content
-                var content = await response.Content.ReadAsStringAsync();
+                IEnumerable<Country> countries;
+                // Send a GET request to the public API
+                var client = _clientFactory.CreateClient();
 
-                // Deserialize the JSON response to a list of Country objects
-                countries = JsonConvert.DeserializeObject<IEnumerable<Country>>(content);
+                var response = await client.GetAsync($"https://restcountries.com/v3.1/all");
 
-                if (countries != null)
+                if (response.IsSuccessStatusCode)
                 {
-                    countries = GetCountryFilteredByName(countries, name);
+                    // Get the response content
+                    var content = await response.Content.ReadAsStringAsync();
 
-                    countries = GetCountriesWithPopulationLessThanLimit(countries, limit);
+                    // Deserialize the JSON response to a list of Country objects
+                    countries = JsonConvert.DeserializeObject<IEnumerable<Country>>(content);
 
-                    countries = GetOrderedCountriesList(countries, nameSorting);
+                    if (countries != null)
+                    {
+                        countries = GetCountryFilteredByName(countries, name);
 
-                    countries = GetFirstCountriesFromList(countries, first);
+                        countries = GetCountriesWithPopulationLessThanLimit(countries, limit);
+
+                        countries = GetOrderedCountriesList(countries, nameSorting);
+
+                        countries = GetFirstCountriesFromList(countries, first);
+                    }
+
+                    if (countries.Count() > 0)
+                    {
+                        // Serialize the list of Country objects back to a JSON string
+                        var json = JsonConvert.SerializeObject(countries, Formatting.Indented);
+
+                        // Write the JSON string to a file
+                        await System.IO.File.WriteAllTextAsync($"{_filename}.json", json);
+
+                        return Ok("countries stored in file");
+                    }
+
+                    return Ok("countries are not found");
                 }
-
-                if (countries.Count() > 0)
-                {
-                    // Serialize the list of Country objects back to a JSON string
-                    var json = JsonConvert.SerializeObject(countries, Formatting.Indented);
-
-                    // Write the JSON string to a file
-                    await System.IO.File.WriteAllTextAsync($"{_filename}.json", json);
-
-                    return Ok("countries stored in file");
-                }
-
-                return Ok("countries are not found");
             }
+            catch { }
 
-            return StatusCode((int)response.StatusCode);
+            return StatusCode((int)HttpStatusCode.InternalServerError, "Something went wrong");
         }
 
         private IEnumerable<Country> GetCountryFilteredByName(IEnumerable<Country> countries, string name)

@@ -17,6 +17,9 @@ namespace ApiDataCollection.Pages
         [BindProperty]
         public string Count { get; set; }
 
+        [BindProperty]
+        public string ResultMessage { get; set; }
+
         public void OnGet()
         {
         }
@@ -36,6 +39,8 @@ namespace ApiDataCollection.Pages
                 queryParams.Add($"first={Count}");
 
             var response = await client.GetAsync($"https://localhost:7171/api/MyApi/params?{string.Join("&", queryParams)}");
+
+            ResultMessage += await response.Content.ReadAsStringAsync();
 
             return Page();
         }
