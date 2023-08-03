@@ -12,7 +12,7 @@ namespace ApiDataCollection.Pages
         public string Limit { get; set; }
 
         [BindProperty]
-        public string Param3 { get; set; }
+        public string Sorting { get; set; }
 
         [BindProperty]
         public string Param4 { get; set; }
@@ -31,7 +31,7 @@ namespace ApiDataCollection.Pages
             //if (!string.IsNullOrEmpty(Param2))
                 queryParams.Add($"limit={Limit}");
             //if (!string.IsNullOrEmpty(Param3))
-                queryParams.Add($"param3={Param3}");
+                queryParams.Add($"nameSorting={Sorting}");
             //if (!string.IsNullOrEmpty(Param4))
                 queryParams.Add($"param4={Param4}");
 

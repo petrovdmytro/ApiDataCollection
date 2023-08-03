@@ -74,4 +74,10 @@ namespace ApiDataCollection.Models
         public int Population { get; set; }
         // Add other properties as needed
     }
+
+    public enum CountryNameSorting { 
+        None = 0,
+        Asc = 1,
+        Desc = 2
+    }
 }
