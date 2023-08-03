@@ -1,0 +1,16 @@
+﻿@page
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@model ApiDataCollection.Pages.FormModel
+@{
+    ViewData["Title"] = "Form Page";
+}
+
+<h1>Country API Filtering Form:</h1>
+
+<form method="post" asp-page-handler="Submit">
+    <label><input asp-for="CountryNameContains" asp-route-param1="@Model.CountryNameContains" /></label><br />
+    <label><input asp-for="Param2" asp-route-param2="@Model.Param2" /></label><br />
+    <label><input asp-for="Param3" asp-route-param3="@Model.Param3" /></label><br />
+    <label><input asp-for="Param4" asp-route-param4="@Model.Param4" /></label><br />
+    <button type="submit">Submit</button>
+</form>

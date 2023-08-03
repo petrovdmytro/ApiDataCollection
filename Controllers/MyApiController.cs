@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Diagnostics.Metrics;
 
 namespace ApiDataCollection.Controllers
 {
@@ -18,14 +19,19 @@ namespace ApiDataCollection.Controllers
         [HttpGet("params")]
         public async Task<IActionResult> GetParamsAsync([FromQuery] string param1 = null, [FromQuery] string param2 = null, [FromQuery] string param3 = null, [FromQuery] string param4 = null)
         {
-            var paramsList = new List<string> { param1, param2, param3, param4 };
-            paramsList.RemoveAll(p => p == null);  // remove null params
-
-            // Do something with paramsList...
 
             // Send a GET request to the public API
             var client = _clientFactory.CreateClient();
-            var response = await client.GetAsync("https://restcountries.com/v3.1/all");
+
+            string filter = "all";
+            
+            if (!string.IsNullOrEmpty(param1))
+            {
+                filter = $"name/{param1}";
+            }
+            string filename = $"countries_{filter}".Replace("/", "_").Replace("\\", "_");
+
+            var response = await client.GetAsync($"https://restcountries.com/v3.1/{filter}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -39,16 +45,14 @@ namespace ApiDataCollection.Controllers
                 var json = JsonConvert.SerializeObject(countries, Formatting.Indented);
 
                 // Write the JSON string to a file
-                await System.IO.File.WriteAllTextAsync("countries.json", json);
+                await System.IO.File.WriteAllTextAsync($"{filename}.json", json);
             }
             else
             {
                 //ViewData["Result"] = "Error: " + response.StatusCode;
             }
 
-
-
-            return Ok(paramsList);
+            return Ok();
         }
     }
 }

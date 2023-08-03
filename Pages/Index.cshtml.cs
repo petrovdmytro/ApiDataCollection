@@ -6,7 +6,7 @@ namespace ApiDataCollection.Pages
     public class FormModel : PageModel
     {
         [BindProperty]
-        public string Param1 { get; set; }
+        public string CountryNameContains { get; set; }
 
         [BindProperty]
         public string Param2 { get; set; }
@@ -21,23 +21,21 @@ namespace ApiDataCollection.Pages
         {
         }
 
-        public async Task<IActionResult> OnGetSubmitAsync()
+        public async Task<IActionResult> OnPostSubmitAsync()
         {
             using var client = new HttpClient();
             var queryParams = new List<string>();
 
-            if (!string.IsNullOrEmpty(Param1))
-                queryParams.Add($"param1={Param1}");
-            if (!string.IsNullOrEmpty(Param2))
+            //if (!string.IsNullOrEmpty(CountryNameContains))
+                queryParams.Add($"CountryNameContains={CountryNameContains}");
+            //if (!string.IsNullOrEmpty(Param2))
                 queryParams.Add($"param2={Param2}");
-            if (!string.IsNullOrEmpty(Param3))
+            //if (!string.IsNullOrEmpty(Param3))
                 queryParams.Add($"param3={Param3}");
-            if (!string.IsNullOrEmpty(Param4))
+            //if (!string.IsNullOrEmpty(Param4))
                 queryParams.Add($"param4={Param4}");
 
-            var response = await client.GetAsync($"http://localhost:7171/api/myapi/params?{string.Join("&", queryParams)}");
-
-            // handle response...
+            var response = await client.GetAsync($"https://localhost:7171/api/MyApi/params?{string.Join("&", queryParams)}");
 
             return Page();
         }
