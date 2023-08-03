@@ -1,4 +1,5 @@
-﻿using ApiDataCollection.Models;
+﻿using ApiDataCollection.Helpers;
+using ApiDataCollection.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -17,10 +18,12 @@ namespace ApiDataCollection.Controllers
     {
         private readonly IHttpClientFactory _clientFactory;
         private StringBuilder _filename;
+        private CountriesResponseHandlers _handlers;
         public MyApiController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
             _filename = new StringBuilder("countries");
+            _handlers = new CountriesResponseHandlers();
         }
 
         [HttpGet("params")]
@@ -44,13 +47,16 @@ namespace ApiDataCollection.Controllers
 
                     if (countries != null)
                     {
-                        countries = GetCountryFilteredByName(countries, name);
+                        countries = _handlers.GetCountryFilteredByName(countries, name);
+                        _filename.Append(name is not null ? $"_name_{name}" : "_all");
 
-                        countries = GetCountriesWithPopulationLessThanLimit(countries, limit);
+                        countries = _handlers.GetCountriesWithPopulationLessThanLimit(countries, limit);
+                        _filename.Append(limit is not null ? $"_popLimit_{limit}" : string.Empty);
 
-                        countries = GetOrderedCountriesList(countries, nameSorting);
+                        countries = _handlers.GetOrderedCountriesList(countries, nameSorting);
 
-                        countries = GetFirstCountriesFromList(countries, first);
+                        countries = _handlers.GetFirstCountriesFromList(countries, first);
+                        _filename.Append(first is not null ? $"_first_{first}_countries" : string.Empty);
                     }
 
                     if (countries.Count() > 0)
@@ -72,40 +78,6 @@ namespace ApiDataCollection.Controllers
             return StatusCode((int)HttpStatusCode.InternalServerError, "Something went wrong");
         }
 
-        private IEnumerable<Country> GetCountryFilteredByName(IEnumerable<Country> countries, string name)
-        {
-            _filename.Append(name is not null ? $"_name_{name}" : "_all");
-            return countries.Where(c => string.IsNullOrWhiteSpace(name) || c.Name.Contains(name));
-        }
-
-        private IEnumerable<Country> GetCountriesWithPopulationLessThanLimit(IEnumerable<Country> countries, int? limit)
-        {
-            _filename.Append(limit is not null ? $"_popLimit_{limit}" : string.Empty);
-            return countries.Where(c => limit == null || c.Population < limit);
-        }
-
-        private IEnumerable<Country> GetOrderedCountriesList(IEnumerable<Country> countries, string nameSorting)
-        {
-            CountryNameSorting sorting = CountryNameSorting.None;
-            if (!string.IsNullOrEmpty(nameSorting) && Enum.TryParse($"{nameSorting.ToUpper()[0]}{nameSorting.Substring(1).ToLower()}", out sorting))
-            {
-                if (sorting == CountryNameSorting.Asc)
-                {
-                    countries = countries.OrderBy(c => c.Name).ToList();
-                    _filename.Append($"_sortedByName_A-Z");
-                }
-                else if (sorting == CountryNameSorting.Desc)
-                {
-                    countries = countries.OrderByDescending(c => c.Name).ToList();
-                    _filename.Append($"_sortedByName_Z-A");
-                }
-            }
-            return countries;
-        }
-        private IEnumerable<Country> GetFirstCountriesFromList(IEnumerable<Country> countries, int? count)
-        {
-            _filename.Append(count is not null ? $"_first_{count}_countries" : string.Empty);
-            return count.HasValue ? countries.Take(count.Value) : countries;
-        }
+        
     }
 }
