@@ -18,9 +18,9 @@ namespace ApiDataCollection.Controllers
         }
 
         [HttpGet("params")]
-        public async Task<IActionResult> GetParamsAsync([FromQuery] string name = null, [FromQuery] int? limit = null, [FromQuery] string nameSorting = null, [FromQuery] string param4 = null)
+        public async Task<IActionResult> GetParamsAsync([FromQuery] string name = null, [FromQuery] int? limit = null, [FromQuery] string nameSorting = null, [FromQuery] int? first = null)
         {
-
+            List<Country> countries = new List<Country>();
             // Send a GET request to the public API
             var client = _clientFactory.CreateClient();
 
@@ -41,40 +41,53 @@ namespace ApiDataCollection.Controllers
                 var content = await response.Content.ReadAsStringAsync();
 
                 // Deserialize the JSON response to a list of Country objects
-                var countries = JsonConvert.DeserializeObject<List<Country>>(content);
+                countries = JsonConvert.DeserializeObject<List<Country>>(content);
 
-                if (countries != null && limit is not null)
+                if (countries != null)
                 {
-                    countries = countries.Where(c => c.Population < limit).ToList();
-                    filename.Append($"_popLimit_{limit}");
-                }
-
-                CountryNameSorting sorting = CountryNameSorting.None;
-                if (!string.IsNullOrEmpty(nameSorting) && Enum.TryParse($"{nameSorting.ToUpper()[0]}{nameSorting.Substring(1).ToLower()}", out sorting))
-                {
-                    if (sorting == CountryNameSorting.Asc)
+                    if (limit is not null)
                     {
-                        countries = countries.OrderBy(c => c.Name).ToList();
-                        filename.Append($"_sortedByName_A-Z");
+                        countries = countries.Where(c => c.Population < limit).ToList();
+                        filename.Append($"_popLimit_{limit}");
                     }
-                    else if (sorting == CountryNameSorting.Desc) {
-                        countries = countries.OrderByDescending(c => c.Name).ToList();
-                        filename.Append($"_sortedByName_Z-A");
+
+                    CountryNameSorting sorting = CountryNameSorting.None;
+                    if (!string.IsNullOrEmpty(nameSorting) && Enum.TryParse($"{nameSorting.ToUpper()[0]}{nameSorting.Substring(1).ToLower()}", out sorting))
+                    {
+                        if (sorting == CountryNameSorting.Asc)
+                        {
+                            countries = countries.OrderBy(c => c.Name).ToList();
+                            filename.Append($"_sortedByName_A-Z");
+                        }
+                        else if (sorting == CountryNameSorting.Desc)
+                        {
+                            countries = countries.OrderByDescending(c => c.Name).ToList();
+                            filename.Append($"_sortedByName_Z-A");
+                        }
+                    }
+
+                    if (first is not null)
+                    {
+                        countries = countries.Take(first.Value).ToList();
+                        filename.Append($"_first_{first}_countries");
                     }
                 }
 
+                
+            }
+
+            if(countries.Count() > 0)
+            {
                 // Serialize the list of Country objects back to a JSON string
                 var json = JsonConvert.SerializeObject(countries, Formatting.Indented);
 
                 // Write the JSON string to a file
                 await System.IO.File.WriteAllTextAsync($"{filename}.json", json);
-            }
-            else
-            {
-                //ViewData["Result"] = "Error: " + response.StatusCode;
+
+                return Ok("coutnries stored in file");
             }
 
-            return Ok();
+            return Ok("countries are not found");
         }
     }
 }

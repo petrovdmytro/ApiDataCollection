@@ -15,7 +15,7 @@ namespace ApiDataCollection.Pages
         public string Sorting { get; set; }
 
         [BindProperty]
-        public string Param4 { get; set; }
+        public string Count { get; set; }
 
         public void OnGet()
         {
@@ -33,7 +33,7 @@ namespace ApiDataCollection.Pages
             //if (!string.IsNullOrEmpty(Param3))
                 queryParams.Add($"nameSorting={Sorting}");
             //if (!string.IsNullOrEmpty(Param4))
-                queryParams.Add($"param4={Param4}");
+                queryParams.Add($"first={Count}");
 
             var response = await client.GetAsync($"https://localhost:7171/api/MyApi/params?{string.Join("&", queryParams)}");
 
