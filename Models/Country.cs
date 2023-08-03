@@ -70,6 +70,8 @@ namespace ApiDataCollection.Models
 
         [JsonConverter(typeof(ArrayToStringConverter))]
         public string Capital { get; set; }
+
+        public int Population { get; set; }
         // Add other properties as needed
     }
 }

@@ -6,10 +6,10 @@ namespace ApiDataCollection.Pages
     public class FormModel : PageModel
     {
         [BindProperty]
-        public string CountryNameContains { get; set; }
+        public string Name { get; set; }
 
         [BindProperty]
-        public string Param2 { get; set; }
+        public string Limit { get; set; }
 
         [BindProperty]
         public string Param3 { get; set; }
@@ -27,9 +27,9 @@ namespace ApiDataCollection.Pages
             var queryParams = new List<string>();
 
             //if (!string.IsNullOrEmpty(CountryNameContains))
-                queryParams.Add($"CountryNameContains={CountryNameContains}");
+                queryParams.Add($"name={Name}");
             //if (!string.IsNullOrEmpty(Param2))
-                queryParams.Add($"param2={Param2}");
+                queryParams.Add($"limit={Limit}");
             //if (!string.IsNullOrEmpty(Param3))
                 queryParams.Add($"param3={Param3}");
             //if (!string.IsNullOrEmpty(Param4))
